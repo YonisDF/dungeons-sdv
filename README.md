@@ -154,11 +154,8 @@ GET /v1/me
 ## Game Master (Dungeon Management)
 
 POST /v1/mj/dungeons\
-PUT /v1/mj/dungeons/{id}\
 POST /v1/mj/dungeons/{id}/publish\
 POST /v1/mj/dungeons/{id}/steps\
-PUT /v1/mj/dungeons/{id}/steps/{stepId}\
-PUT /v1/mj/dungeons/{id}/steps/reorder
 
 ------------------------------------------------------------------------
 
