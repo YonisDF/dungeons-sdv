@@ -15,5 +15,10 @@ func main() {
 	log.Debug().Msg("API launched with human readable log")
 
 	srv := server.GetServer()
+
+	//createPlayer() -> Bootloader playerService.New(), set data new player
+	//getPlayer()
+	//updatePlayer()
+
 	srv.ListenAndServe()
 }
