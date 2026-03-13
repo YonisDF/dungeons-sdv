@@ -85,7 +85,7 @@ func (p *Player) Create(in *models.Player) (*models.Player, error) {
 		return nil, err
 	}
 
-	player.ID = functions.NewUUID()
+	player.CustomID = functions.NewUUID()
 	player.CreatedAt = time.Now()
 
 	_, err = collection.InsertOne(context.TODO(), player)

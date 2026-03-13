@@ -1,6 +1,6 @@
 package models
 
-type BossStepsID string
+type BossStepID string
 
 type Difficulty string
 
@@ -10,7 +10,7 @@ const (
 	DifficultyHard   Difficulty = "hard"
 )
 
-type BossSteps struct {
+type BossStep struct {
 	CustomID        string     `bson:"customID" json:"id"`
 	DungeonID       string     `bson:"dungeonID" json:"dungeonID"`
 	Name            string     `json:"name"`
@@ -24,7 +24,7 @@ type BossSteps struct {
 	Rewards         []string   `json:"rewards"`
 }
 
-type BossStepsResponse struct {
+type BossStepResponse struct {
 	ID              string     `json:"id"`
 	DungeonID       string     `json:"dungeonID"`
 	Name            string     `json:"name"`
@@ -39,6 +39,6 @@ type BossStepsResponse struct {
 }
 
 // Collection Mongodb collection
-func (bs *BossSteps) Collection() string {
-	return "boss_steps"
+func (bs *BossStep) Collection() string {
+	return "boss_step"
 }
