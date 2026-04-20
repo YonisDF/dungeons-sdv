@@ -1,8 +1,8 @@
 package run
 
 import (
-	controller "dungeons/app/controllers/player"
-	service "dungeons/app/services/player"
+	controller "dungeons/app/controllers/run"
+	service "dungeons/app/services/run"
 
 	"github.com/gin-gonic/gin"
 )

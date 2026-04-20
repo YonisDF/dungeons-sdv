@@ -13,7 +13,7 @@ earn rewards.
 Your mission: **implement the remaining backend logic following the
 specifications below.**
 
-------------------------------------------------------------------------
+---
 
 # 🧩 Domain Model
 
@@ -24,17 +24,17 @@ geographic area.
 
 ### Dungeon
 
--   customId
--   title
--   description
--   createdBy (mjId)
--   area (name, optional bounding box)
--   bosses\[\] (ordered steps)
--   status (draft / published / archived)
--   createdAt
--   updatedAt
+- customId
+- title
+- description
+- createdBy (mjId)
+- area (name, optional bounding box)
+- bosses\[\] (ordered steps)
+- status (draft / published / archived)
+- createdAt
+- updatedAt
 
-------------------------------------------------------------------------
+---
 
 ## 2️⃣ Boss / Step
 
@@ -42,22 +42,22 @@ Each boss has a physical location and a difficulty level.
 
 ### BossStep
 
--   customId
--   dungeonId
--   order (1..n)
--   name
--   location:
-    -   lat
-    -   lon
-    -   radiusMeters ⚠️ (used to validate player presence)
--   zoneDescription
--   difficulty (1..10 or enum)
--   rewards (fixed or loot table)
--   bossState (optional -- for respawn logic)
+- customId
+- dungeonId
+- order (1..n)
+- name
+- location:
+  - lat
+  - lon
+  - radiusMeters ⚠️ (used to validate player presence)
+- zoneDescription
+- difficulty (1..10 or enum)
+- rewards (fixed or loot table)
+- bossState (optional -- for respawn logic)
 
 ⚠️ `radiusMeters` is mandatory to validate "on-site" presence.
 
-------------------------------------------------------------------------
+---
 
 ## 3️⃣ Run (Session)
 
@@ -65,81 +65,81 @@ A Run represents one player playing one dungeon.
 
 ### Run
 
--   customId
--   dungeonId
--   playerId
--   state (active / completed / abandoned)
--   currentStep (index or bossStepId)
--   killedSteps\[\]:
-    -   bossStepId
-    -   killedAt
-    -   proof/meta
--   startedAt
--   endedAt
+- customId
+- dungeonId
+- playerId
+- state (active / completed / abandoned)
+- currentStep (index or bossStepId)
+- killedSteps\[\]:
+  - bossStepId
+  - killedAt
+  - proof/meta
+- startedAt
+- endedAt
 
-------------------------------------------------------------------------
+---
 
 ## 4️⃣ Player / Account
 
 ### Player
 
--   customId
--   displayName
--   wallet (gold)
--   inventory (items + quantities)
--   createdAt
+- customId
+- displayName
+- wallet (gold)
+- inventory (items + quantities)
+- createdAt
 
-------------------------------------------------------------------------
+---
 
 ## 5️⃣ Items
 
 ### ItemDef (catalog)
 
--   customId
--   type (weapon / artifact / consumable)
--   rarity
--   stats (JSON)
+- customId
+- type (weapon / artifact / consumable)
+- rarity
+- stats (JSON)
 
 ### InventoryEntry
 
--   playerId
--   itemId
--   qty
+- playerId
+- itemId
+- qty
 
-------------------------------------------------------------------------
+---
 
 ## 6️⃣ Auction House
 
 ### Listing
 
--   customId
--   sellerId
--   itemId
--   qty
--   pricePerUnit
--   status (active / sold / cancelled / expired)
--   createdAt
--   expiresAt
+- customId
+- sellerId
+- itemId
+- qty
+- pricePerUnit
+- status (active / sold / cancelled / expired)
+- createdAt
+- expiresAt
 
 ### Trade (optional but recommended)
 
--   buyerId
--   sellerId
--   listingId
--   qty
--   totalPrice
--   createdAt
+- buyerId
+- sellerId
+- listingId
+- qty
+- totalPrice
+- createdAt
 
-------------------------------------------------------------------------
+---
 
 # 📍 Geolocation & Anti-Cheat
 
 ## MVP Rules
 
--   Client sends `lat/lon` when attempting a boss.
--   Server validates: `distance <= radiusMeters`.
+- Client sends `lat/lon` when attempting a boss.
+- Server validates: `distance <= radiusMeters`.
 
-------------------------------------------------------------------------
+---
 
 # 🌐 REST Endpoints (MVP)
 
@@ -149,15 +149,18 @@ POST /v1/auth/register\
 POST /v1/auth/login\
 GET /v1/me
 
-------------------------------------------------------------------------
+---
 
 ## Game Master (Dungeon Management)
 
-POST /v1/mj/dungeons\
-POST /v1/mj/dungeons/{id}/publish\
-POST /v1/mj/dungeons/{id}/steps\
+POST /v1/mj/dungeons\ -> Create dungeon
+PUT /v1/mj/dungeons/{id}\ -> Update dungeon
+POST /v1/mj/dungeons/{id}/publish\ -> Publish dungeon
+POST /v1/mj/dungeons/{id}/steps\ -> Create step to dungeon
+PUT /v1/mj/dungeons/{id}/steps/{stepId}\ -> Update step
+PUT /v1/mj/dungeons/{id}/steps/reorder -> Reorder
 
-------------------------------------------------------------------------
+---
 
 ## Player
 
@@ -167,7 +170,7 @@ POST /v1/runs\
 GET /v1/runs\
 GET /v1/runs/{id}
 
-------------------------------------------------------------------------
+---
 
 ## Boss Attempt
 
@@ -181,7 +184,7 @@ Responses:
 409 WRONG_STEP_ORDER\
 200 OK + rewards
 
-------------------------------------------------------------------------
+---
 
 ## Inventory & Economy
 
@@ -191,7 +194,7 @@ GET /v1/auction/listings\
 POST /v1/auction/listings/{id}/buy\
 POST /v1/auction/listings/{id}/cancel
 
-------------------------------------------------------------------------
+---
 
 # ⚙️ Business Rules (Mandatory)
 
@@ -204,42 +207,42 @@ POST /v1/auction/listings/{id}/cancel
 5.  Idempotency: boss attempt endpoint must prevent double rewards
     (retry-safe).
 
-------------------------------------------------------------------------
+---
 
 # 🎯 Student Objectives
 
 You must:
 
--   Implement the database schema
--   Implement services and controllers
--   Handle transactions properly
--   Implement distance calculation logic
--   Ensure idempotent boss attempts
--   Add validation & proper HTTP error codes
+- Implement the database schema
+- Implement services and controllers
+- Handle transactions properly
+- Implement distance calculation logic
+- Ensure idempotent boss attempts
+- Add validation & proper HTTP error codes
 
-------------------------------------------------------------------------
+---
 
 # 🏆 Bonus Ideas
 
--   Leaderboard
--   Multiplayer runs
--   Guild system
--   Dynamic loot tables
--   Rate limiting
--   Event-based world bosses
+- Leaderboard
+- Multiplayer runs
+- Guild system
+- Dynamic loot tables
+- Rate limiting
+- Event-based world bosses
 
-------------------------------------------------------------------------
+---
 
 # 🧠 Technical Recommendations
 
--   Use Mongo-DB [`Setup`](doc/MongoDB_Atlas_Guide_Complet.md)
--   Use transactions for economy and boss rewards
--   Use clean architecture or controller/service separation
--   Write unit tests for:
-    -   distance validation
-    -   progression rules
-    -   transaction safety
+- Use Mongo-DB [`Setup`](doc/MongoDB_Atlas_Guide_Complet.md)
+- Use transactions for economy and boss rewards
+- Use clean architecture or controller/service separation
+- Write unit tests for:
+  - distance validation
+  - progression rules
+  - transaction safety
 
-------------------------------------------------------------------------
+---
 
 Happy coding 🚀

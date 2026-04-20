@@ -153,7 +153,7 @@ func (s *BossStep) GetByID(ctx *gin.Context) {
 
 // Update controller to update boss step
 func (s *BossStep) Update(ctx *gin.Context) {
-	var in models.BossStep
+	var in models.UpdateBossStepInput
 	messageTypes := &models.MessageTypes{
 		OK:                  "bossStep.Update.Updated",
 		BadRequest:          "bossStep.Update.BadRequest",
@@ -253,4 +253,93 @@ func (s *BossStep) GetByIDs(ctx *gin.Context) {
 	}
 
 	common.SendResponse(ctx, http.StatusOK, response)
+}
+
+// Create BossStep for a dungeon
+func (s *BossStep) CreateForDungeon(ctx *gin.Context) {
+	var in models.BossStep
+
+	messageTypes := &models.MessageTypes{
+		Created:             "bossStep.Create.Created",
+		BadRequest:          "bossStep.Create.BadRequest",
+		InternalServerError: "bossStep.Create.Error",
+	}
+
+	if err := ctx.BindJSON(&in); err != nil {
+		common.SendResponse(ctx, http.StatusBadRequest, models.KnownError(http.StatusBadRequest, messageTypes.BadRequest, err))
+		return
+	}
+
+	dungeonID := ctx.Param("id")
+
+	bossStep, err := s.BossStepService.CreateForDungeon(dungeonID, &in)
+	if err != nil {
+		common.SendResponse(ctx, http.StatusBadRequest, models.KnownError(http.StatusInternalServerError, messageTypes.InternalServerError, err))
+		return
+	}
+
+	meta := models.MetaResponse{
+		ObjectName: "BossStep",
+		TotalCount: 1,
+		Count:      1,
+		Offset:     0,
+	}
+
+	response := &models.WSResponse{
+		Meta: meta,
+		Data: bossStep,
+	}
+
+	common.SendResponse(ctx, http.StatusCreated, response)
+}
+
+// Update step for dungeon
+func (s *BossStep) UpdateForDungeon(ctx *gin.Context) {
+	var in models.UpdateBossStepInput
+
+	messageTypes := &models.MessageTypes{
+		OK:                  "bossStep.Update.Updated",
+		BadRequest:          "bossStep.Update.BadRequest",
+		InternalServerError: "bossStep.Update.Error",
+	}
+
+	if err := ctx.BindJSON(&in); err != nil {
+		common.SendResponse(ctx, http.StatusBadRequest, models.KnownError(http.StatusBadRequest, messageTypes.BadRequest, err))
+		return
+	}
+
+	dungeonID := ctx.Param("id")
+	stepID := ctx.Param("stepId")
+
+	if err := s.BossStepService.UpdateForDungeon(dungeonID, stepID, &in); err != nil {
+		common.SendResponse(ctx, http.StatusBadRequest, models.KnownError(http.StatusInternalServerError, messageTypes.InternalServerError, err))
+		return
+	}
+
+	common.SendResponse(ctx, http.StatusOK, models.Success(http.StatusOK, messageTypes.OK, "boss step updated"))
+}
+
+// Reorder Boss Steps
+func (s *BossStep) ReorderForDungeon(ctx *gin.Context) {
+	var in models.ReorderBossStepsInput
+
+	messageTypes := &models.MessageTypes{
+		OK:                  "bossStep.Reorder.Updated",
+		BadRequest:          "bossStep.Reorder.BadRequest",
+		InternalServerError: "bossStep.Reorder.Error",
+	}
+
+	if err := ctx.BindJSON(&in); err != nil {
+		common.SendResponse(ctx, http.StatusBadRequest, models.KnownError(http.StatusBadRequest, messageTypes.BadRequest, err))
+		return
+	}
+
+	dungeonID := ctx.Param("id")
+
+	if err := s.BossStepService.Reorder(dungeonID, &in); err != nil {
+		common.SendResponse(ctx, http.StatusBadRequest, models.KnownError(http.StatusInternalServerError, messageTypes.InternalServerError, err))
+		return
+	}
+
+	common.SendResponse(ctx, http.StatusOK, models.Success(http.StatusOK, messageTypes.OK, "boss steps reordered"))
 }

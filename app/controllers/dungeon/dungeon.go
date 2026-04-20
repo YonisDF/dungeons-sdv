@@ -153,7 +153,7 @@ func (s *Dungeon) GetByID(ctx *gin.Context) {
 
 // Update controller to update dungeon
 func (s *Dungeon) Update(ctx *gin.Context) {
-	var in models.Dungeon
+	var in models.UpdateDungeonInput
 	messageTypes := &models.MessageTypes{
 		OK:                  "dungeon.Update.Updated",
 		BadRequest:          "dungeon.Update.BadRequest",
@@ -253,4 +253,31 @@ func (s *Dungeon) GetByIDs(ctx *gin.Context) {
 	}
 
 	common.SendResponse(ctx, http.StatusOK, response)
+}
+
+// Publish
+func (s *Dungeon) Publish(ctx *gin.Context) {
+	messageTypes := &models.MessageTypes{
+		OK:                  "dungeon.Publish.Updated",
+		BadRequest:          "dungeon.Publish.BadRequest",
+		InternalServerError: "dungeon.Publish.Error",
+	}
+
+	id := ctx.Param("id")
+
+	err := s.DungeonService.Publish(id)
+	if err != nil {
+		common.SendResponse(
+			ctx,
+			http.StatusBadRequest,
+			models.KnownError(http.StatusInternalServerError, messageTypes.InternalServerError, err),
+		)
+		return
+	}
+
+	common.SendResponse(
+		ctx,
+		http.StatusOK,
+		models.Success(http.StatusOK, messageTypes.OK, "dungeon published"),
+	)
 }

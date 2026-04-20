@@ -119,7 +119,7 @@ func (s *Run) Create(ctx *gin.Context) {
 }
 
 // GetByID controller to get one run by id
-func (s *run) GetByID(ctx *gin.Context) {
+func (s *Run) GetByID(ctx *gin.Context) {
 	messageTypes := &models.MessageTypes{
 		OK:                  "run.get.founded",
 		NotFound:            "run.get.NotFound",
@@ -153,7 +153,7 @@ func (s *run) GetByID(ctx *gin.Context) {
 
 // Update controller to update run
 func (s *Run) Update(ctx *gin.Context) {
-	var in models.Run
+	var in models.UpdateRunInput
 	messageTypes := &models.MessageTypes{
 		OK:                  "run.Update.Updated",
 		BadRequest:          "run.Update.BadRequest",
@@ -172,20 +172,6 @@ func (s *Run) Update(ctx *gin.Context) {
 		return
 	}
 	common.SendResponse(ctx, http.StatusOK, models.Success(http.StatusOK, messageTypes.OK, "run updated"))
-}
-
-func (s *Run) Suspend(ctx *gin.Context) {
-	messageTypes := &models.MessageTypes{
-		OK:                  "run.Suspend.Updated",
-		InternalServerError: "run.Suspend.Error",
-	}
-	id := ctx.Param("id")
-	err := s.RunService.Suspend(id)
-	if err != nil {
-		common.SendResponse(ctx, http.StatusBadRequest, models.KnownError(http.StatusInternalServerError, messageTypes.InternalServerError, err))
-		return
-	}
-	common.SendResponse(ctx, http.StatusOK, models.Success(http.StatusOK, messageTypes.OK, "run suspended"))
 }
 
 // GetByIDs To get all run customID

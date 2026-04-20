@@ -153,7 +153,7 @@ func (s *Player) GetByID(ctx *gin.Context) {
 
 // Update controller to update player
 func (s *Player) Update(ctx *gin.Context) {
-	var in models.Player
+	var in models.UpdatePlayerInput
 	messageTypes := &models.MessageTypes{
 		OK:                  "player.Update.Updated",
 		BadRequest:          "player.Update.BadRequest",
@@ -182,7 +182,7 @@ func (s *Player) Suspend(ctx *gin.Context) {
 	id := ctx.Param("id")
 	err := s.PlayerService.Suspend(id)
 	if err != nil {
-		common.SendResponse(ctx, http.StatusBadRequest, models.KnownError(http.StatusInternalServerError, messageTypes.InternalServerError, err))
+		common.SendResponse(ctx, http.StatusInternalServerError, models.KnownError(http.StatusInternalServerError, messageTypes.InternalServerError, err))
 		return
 	}
 	common.SendResponse(ctx, http.StatusOK, models.Success(http.StatusOK, messageTypes.OK, "player suspended"))

@@ -5,10 +5,15 @@ import "time"
 type ItemID string
 
 type InventoryEntry struct {
-	PlayerID  string    `db:"player_id"`
-	ItemID    string    `db:"item_id"`
-	Qty       int64     `db:"qty"`
-	UpdatedAt time.Time `db:"updated_at"`
+	PlayerID  string    `bson:"playerID" json:"playerID"`
+	ItemID    string    `bson:"itemID" json:"itemID"`
+	Qty       int64     `bson:"qty" json:"qty"`
+	UpdatedAt time.Time `bson:"updatedAt" json:"updatedAt"`
+}
+
+type InventoryChangeInput struct {
+	ItemID string `json:"itemId"`
+	Qty    int64  `json:"qty"`
 }
 
 // Collection Mongodb collection
@@ -17,16 +22,16 @@ func (ie *InventoryEntry) Collection() string {
 }
 
 type ItemDef struct {
-	ID          string    `db:"id"`
-	Type        string    `db:"type"`
-	Rarity      string    `db:"rarity"`
-	Name        string    `db:"name"`
-	Description string    `db:"description"`
-	StatsJSON   []byte    `db:"stats_json"` // JSONB côté Postgres
-	Tradable    bool      `db:"tradable"`
-	BaseValue   int64     `db:"base_value"`
-	CreatedAt   time.Time `db:"created_at"`
-	UpdatedAt   time.Time `db:"updated_at"`
+	ID          string    `bson:"id" json:"id"`
+	Type        string    `bson:"type" json:"type"`
+	Rarity      string    `bson:"rarity" json:"rarity"`
+	Name        string    `bson:"name" json:"name"`
+	Description string    `bson:"description" json:"description"`
+	StatsJSON   []byte    `bson:"statsJSON" json:"-"`
+	Tradable    bool      `bson:"tradable" json:"tradable"`
+	BaseValue   int64     `bson:"baseValue" json:"baseValue"`
+	CreatedAt   time.Time `bson:"createdAt" json:"createdAt"`
+	UpdatedAt   time.Time `bson:"updatedAt" json:"updatedAt"`
 }
 
 // Collection Mongodb collection

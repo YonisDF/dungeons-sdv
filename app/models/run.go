@@ -16,14 +16,14 @@ type Run struct {
 	CustomID    string    `bson:"customID" json:"id"`
 	DungeonID   string    `bson:"dungeonID" json:"dungeonID"`
 	PlayerID    string    `bson:"playerID" json:"playerID"`
-	State       State     `json:"state"`
-	CurrentStep string    `json:"currentStep"`
-	KilledSteps []string  `json:"killed_steps"`
-	BossStepID  string    `json:"boss_step_id"`
-	KilledAt    time.Time `json:"killed_at"`
-	Proof       string    `json:"proof"`
-	StartedAt   time.Time `json:"started_at"`
-	EndedAt     time.Time `json:"ended_at"`
+	State       State     `bson:"state" json:"state"`
+	CurrentStep string    `bson:"currentStep" json:"currentStep"`
+	KilledSteps []string  `bson:"killedSteps" json:"killed_steps"`
+	BossStepID  string    `bson:"bossStepID" json:"boss_step_id"`
+	KilledAt    time.Time `bson:"killedAt" json:"killed_at"`
+	Proof       string    `bson:"proof" json:"proof"`
+	StartedAt   time.Time `bson:"startedAt" json:"started_at"`
+	EndedAt     time.Time `bson:"endedAt" json:"ended_at"`
 }
 
 type RunResponse struct {
@@ -38,6 +38,19 @@ type RunResponse struct {
 	Proof       string    `json:"proof"`
 	StartedAt   time.Time `json:"started_at"`
 	EndedAt     time.Time `json:"ended_at"`
+}
+
+type UpdateRunInput struct {
+	DungeonID   *string    `json:"dungeonID"`
+	PlayerID    *string    `json:"playerID"`
+	State       *State     `json:"state"`
+	CurrentStep *string    `json:"currentStep"`
+	KilledSteps *[]string  `json:"killed_steps"`
+	BossStepID  *string    `json:"boss_step_id"`
+	KilledAt    *time.Time `json:"killed_at"`
+	Proof       *string    `json:"proof"`
+	StartedAt   *time.Time `json:"started_at"`
+	EndedAt     *time.Time `json:"ended_at"`
 }
 
 // Collection Mongodb collection

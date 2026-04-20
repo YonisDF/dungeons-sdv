@@ -122,13 +122,11 @@ func (p *Player) GetByID(id string) (models.Player, error) {
 }
 
 // Update controller to update a Player
-func (p *Player) Update(id string, in *models.Player) error {
+func (p *Player) Update(id string, in *models.UpdatePlayerInput) error {
 	var (
-		doc         interface{}
 		result      *mongo.UpdateResult
 		err         error
 		queryParams models.QueryParams
-		Player      models.Player
 	)
 
 	srv := server.GetServer()
@@ -140,29 +138,31 @@ func (p *Player) Update(id string, in *models.Player) error {
 		return err
 	}
 
-	Player, err = p.GetByID(id)
-	if err != nil {
-		log.Error().Err(err).Msg("")
-		return err
+	updateFields := bson.M{
+		"updatedat": time.Now(),
 	}
 
-	err = functions.ConvertInputStructToDataStruct(in, &Player)
-	if err != nil {
-		log.Error().Err(err).Msg("")
-		return err
+	if in.DisplayName != nil {
+		updateFields["displayname"] = *in.DisplayName
 	}
 
-	Player.UpdatedAt = time.Now()
-	collection := srv.Database.Collection(Player.Collection())
+	if in.Gold != nil {
+		updateFields["gold"] = *in.Gold
+	}
+
+	if len(updateFields) == 1 {
+		return errors.New("no fields to update")
+	}
 
 	queryParams.FilterClause = append(queryParams.FilterClause, "customID,"+id)
 	filter := mongodb.SelectConstructeur(queryParams)
-	if doc, err = mongodb.ToDoc(Player); err != nil {
-		log.Error().Err(err).Msg("")
-		return err
+
+	collection := srv.Database.Collection((&models.Player{}).Collection())
+
+	update := bson.M{
+		"$set": updateFields,
 	}
 
-	update := bson.M{"$set": doc}
 	result, err = collection.UpdateOne(context.TODO(), filter, update)
 	if err != nil {
 		log.Error().Err(err).Msg("")
@@ -170,12 +170,13 @@ func (p *Player) Update(id string, in *models.Player) error {
 	}
 
 	if result.MatchedCount == 0 {
-		err = errors.New("Player to be modified was not found")
+		err = errors.New("player to be modified was not found")
 	}
 
 	if err == nil && result.ModifiedCount == 0 {
-		err = errors.New("Player could not be updated")
+		err = errors.New("player could not be updated")
 	}
+
 	if err != nil {
 		log.Error().Err(err).Msg("")
 	}
@@ -188,21 +189,23 @@ func (s *Player) Suspend(id string) error {
 	var (
 		err         error
 		queryParams models.QueryParams
-		Player      models.Player
+		player      models.Player
 	)
 
 	srv := server.GetServer()
-	collection := srv.Database.Collection(Player.Collection())
+	collection := srv.Database.Collection(player.Collection())
 
 	queryParams.FilterClause = append(queryParams.FilterClause, "customID,"+id)
 	filter := mongodb.SelectConstructeur(queryParams)
-	update := bson.D{
-		{Key: "$set", Value: bson.D{
-			{Key: "suspended", Value: true},
-		}},
-	}
-	_, err = collection.UpdateOne(context.TODO(), filter, update)
 
+	update := bson.M{
+		"$set": bson.M{
+			"suspended": true,
+			"updatedat": time.Now(),
+		},
+	}
+
+	_, err = collection.UpdateOne(context.TODO(), filter, update)
 	return err
 }
 

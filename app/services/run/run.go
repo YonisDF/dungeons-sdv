@@ -122,47 +122,67 @@ func (r *Run) GetByID(id string) (models.Run, error) {
 }
 
 // Update controller to update a Run
-func (r *Run) Update(id string, in *models.Run) error {
+func (r *Run) Update(id string, in *models.UpdateRunInput) error {
 	var (
-		doc         interface{}
 		result      *mongo.UpdateResult
 		err         error
 		queryParams models.QueryParams
-		Run         models.Run
 	)
 
 	srv := server.GetServer()
 
 	// Check input fields
-	err = r.validate.Struct(in)
-	if err != nil {
+	if err = r.validate.Struct(in); err != nil {
 		log.Error().Err(err).Msg("")
 		return err
 	}
 
-	Run, err = r.GetByID(id)
-	if err != nil {
-		log.Error().Err(err).Msg("")
-		return err
+	updateFields := bson.M{}
+
+	if in.DungeonID != nil {
+		updateFields["dungeonID"] = *in.DungeonID
+	}
+	if in.PlayerID != nil {
+		updateFields["playerID"] = *in.PlayerID
+	}
+	if in.State != nil {
+		updateFields["state"] = *in.State
+	}
+	if in.CurrentStep != nil {
+		updateFields["currentStep"] = *in.CurrentStep
+	}
+	if in.KilledSteps != nil {
+		updateFields["killedSteps"] = *in.KilledSteps
+	}
+	if in.BossStepID != nil {
+		updateFields["bossStepID"] = *in.BossStepID
+	}
+	if in.KilledAt != nil {
+		updateFields["killedAt"] = *in.KilledAt
+	}
+	if in.Proof != nil {
+		updateFields["proof"] = *in.Proof
+	}
+	if in.StartedAt != nil {
+		updateFields["startedAt"] = *in.StartedAt
+	}
+	if in.EndedAt != nil {
+		updateFields["endedAt"] = *in.EndedAt
 	}
 
-	err = functions.ConvertInputStructToDataStruct(in, &Run)
-	if err != nil {
-		log.Error().Err(err).Msg("")
-		return err
+	if len(updateFields) == 0 {
+		return errors.New("no fields to update")
 	}
-
-	Run.EndedAt = time.Now()
-	collection := srv.Database.Collection(Run.Collection())
 
 	queryParams.FilterClause = append(queryParams.FilterClause, "customID,"+id)
 	filter := mongodb.SelectConstructeur(queryParams)
-	if doc, err = mongodb.ToDoc(Run); err != nil {
-		log.Error().Err(err).Msg("")
-		return err
+
+	collection := srv.Database.Collection((&models.Run{}).Collection())
+
+	update := bson.M{
+		"$set": updateFields,
 	}
 
-	update := bson.M{"$set": doc}
 	result, err = collection.UpdateOne(context.TODO(), filter, update)
 	if err != nil {
 		log.Error().Err(err).Msg("")
@@ -170,40 +190,14 @@ func (r *Run) Update(id string, in *models.Run) error {
 	}
 
 	if result.MatchedCount == 0 {
-		err = errors.New("Run to be modified was not found")
+		return errors.New("Run to be modified was not found")
 	}
 
-	if err == nil && result.ModifiedCount == 0 {
-		err = errors.New("Run could not be updated")
-	}
-	if err != nil {
-		log.Error().Err(err).Msg("")
+	if result.ModifiedCount == 0 {
+		return errors.New("Run could not be updated")
 	}
 
-	return err
-}
-
-// Suspend or Delete controller to suspend a Run
-func (s *Run) Suspend(id string) error {
-	var (
-		err         error
-		queryParams models.QueryParams
-		Run         models.Run
-	)
-
-	srv := server.GetServer()
-	collection := srv.Database.Collection(Run.Collection())
-
-	queryParams.FilterClause = append(queryParams.FilterClause, "customID,"+id)
-	filter := mongodb.SelectConstructeur(queryParams)
-	update := bson.D{
-		{Key: "$set", Value: bson.D{
-			{Key: "suspended", Value: true},
-		}},
-	}
-	_, err = collection.UpdateOne(context.TODO(), filter, update)
-
-	return err
+	return nil
 }
 
 // GetByIds controller to get list of Run by Ids

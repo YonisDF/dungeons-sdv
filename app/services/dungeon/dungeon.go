@@ -122,13 +122,11 @@ func (d *Dungeon) GetByID(id string) (models.Dungeon, error) {
 }
 
 // Update controller to update a Dungeon
-func (d *Dungeon) Update(id string, in *models.Dungeon) error {
+func (d *Dungeon) Update(id string, in *models.UpdateDungeonInput) error {
 	var (
-		doc         interface{}
 		result      *mongo.UpdateResult
 		err         error
 		queryParams models.QueryParams
-		Dungeon     models.Dungeon
 	)
 
 	srv := server.GetServer()
@@ -140,29 +138,47 @@ func (d *Dungeon) Update(id string, in *models.Dungeon) error {
 		return err
 	}
 
-	Dungeon, err = d.GetByID(id)
-	if err != nil {
-		log.Error().Err(err).Msg("")
-		return err
+	updateFields := bson.M{}
+
+	if in.Title != nil {
+		updateFields["title"] = *in.Title
 	}
 
-	err = functions.ConvertInputStructToDataStruct(in, &Dungeon)
-	if err != nil {
-		log.Error().Err(err).Msg("")
-		return err
+	if in.Description != nil {
+		updateFields["description"] = *in.Description
 	}
 
-	Dungeon.UpdatedAt = time.Now()
-	collection := srv.Database.Collection(Dungeon.Collection())
+	if in.CreatedBy != nil {
+		updateFields["createdby"] = *in.CreatedBy
+	}
+
+	if in.Area != nil {
+		updateFields["area"] = *in.Area
+	}
+
+	if in.Bosses != nil {
+		updateFields["bosses"] = *in.Bosses
+	}
+
+	if in.Status != nil {
+		updateFields["status"] = *in.Status
+	}
+
+	updateFields["updatedat"] = time.Now()
+
+	if len(updateFields) == 1 {
+		return errors.New("no fields to update")
+	}
 
 	queryParams.FilterClause = append(queryParams.FilterClause, "customID,"+id)
 	filter := mongodb.SelectConstructeur(queryParams)
-	if doc, err = mongodb.ToDoc(Dungeon); err != nil {
-		log.Error().Err(err).Msg("")
-		return err
+
+	collection := srv.Database.Collection((&models.Dungeon{}).Collection())
+
+	update := bson.M{
+		"$set": updateFields,
 	}
 
-	update := bson.M{"$set": doc}
 	result, err = collection.UpdateOne(context.TODO(), filter, update)
 	if err != nil {
 		log.Error().Err(err).Msg("")
@@ -170,12 +186,13 @@ func (d *Dungeon) Update(id string, in *models.Dungeon) error {
 	}
 
 	if result.MatchedCount == 0 {
-		err = errors.New("Dungeon to be modified was not found")
+		err = errors.New("dungeon to be modified was not found")
 	}
 
 	if err == nil && result.ModifiedCount == 0 {
-		err = errors.New("Dungeon could not be updated")
+		err = errors.New("dungeon could not be updated")
 	}
+
 	if err != nil {
 		log.Error().Err(err).Msg("")
 	}
@@ -196,10 +213,11 @@ func (s *Dungeon) Suspend(id string) error {
 
 	queryParams.FilterClause = append(queryParams.FilterClause, "customID,"+id)
 	filter := mongodb.SelectConstructeur(queryParams)
-	update := bson.D{
-		{Key: "$set", Value: bson.D{
-			{Key: "suspended", Value: true},
-		}},
+	update := bson.M{
+		"$set": bson.M{
+			"suspended": true,
+			"updatedat": time.Now(),
+		},
 	}
 	_, err = collection.UpdateOne(context.TODO(), filter, update)
 
@@ -217,4 +235,45 @@ func (s *Dungeon) GetByIds(ids []string) ([]models.Dungeon, error) {
 		Dungeons = append(Dungeons, Dungeon)
 	}
 	return Dungeons, nil
+}
+
+// Publish
+func (d *Dungeon) Publish(id string) error {
+	var (
+		result      *mongo.UpdateResult
+		err         error
+		queryParams models.QueryParams
+	)
+
+	srv := server.GetServer()
+	collection := srv.Database.Collection((&models.Dungeon{}).Collection())
+
+	now := time.Now()
+
+	queryParams.FilterClause = append(queryParams.FilterClause, "customID,"+id)
+	filter := mongodb.SelectConstructeur(queryParams)
+
+	update := bson.M{
+		"$set": bson.M{
+			"status":      models.DungeonStatusPublished,
+			"publishedAt": now,
+			"suspended":   false,
+		},
+	}
+
+	result, err = collection.UpdateOne(context.TODO(), filter, update)
+	if err != nil {
+		log.Error().Err(err).Msg("")
+		return err
+	}
+
+	if result.MatchedCount == 0 {
+		return errors.New("Dungeon to be published was not found")
+	}
+
+	if result.ModifiedCount == 0 {
+		return errors.New("Dungeon could not be published")
+	}
+
+	return nil
 }

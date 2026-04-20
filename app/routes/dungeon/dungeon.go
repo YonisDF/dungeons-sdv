@@ -1,14 +1,13 @@
 package dungeon
 
 import (
-	controller "dungeons/app/controllers/player"
-	service "dungeons/app/services/player"
+	controller "dungeons/app/controllers/dungeon"
+	service "dungeons/app/services/dungeon"
 
 	"github.com/gin-gonic/gin"
 )
 
 func SetupRouter(g *gin.Engine) {
-
 	servicesDungeon := service.New()
 	dungeonController := controller.New(servicesDungeon)
 
@@ -16,11 +15,17 @@ func SetupRouter(g *gin.Engine) {
 	{
 		dungeons := v1.Group("/dungeons")
 		{
-			dungeons.POST("", dungeonController.Create)
 			dungeons.GET("", dungeonController.Get)
 			dungeons.GET("/:id", dungeonController.GetByID)
-			dungeons.POST("/:id", dungeonController.Update)
 			dungeons.GET("/IDS/:ids", dungeonController.GetByIDs)
+		}
+
+		mjDungeons := v1.Group("/mj/dungeons")
+		{
+			mjDungeons.POST("", dungeonController.Create)
+			mjDungeons.PUT("/:id", dungeonController.Update)
+			mjDungeons.POST("/:id/publish", dungeonController.Publish)
+			mjDungeons.DELETE("/:id", dungeonController.Suspend)
 		}
 	}
 }
