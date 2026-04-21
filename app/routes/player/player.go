@@ -21,7 +21,7 @@ func SetupRouter(g *gin.Engine) {
 			players.GET("/:id", playerController.GetByID)
 			players.DELETE("/:id", playerController.Suspend)
 			players.PATCH("/:id", playerController.Update)
-			players.GET("/IDS/:ids", playerController.GetByIDs)
+			players.GET("/ids/:ids", playerController.GetByIDs)
 		}
 	}
 }

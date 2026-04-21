@@ -53,6 +53,17 @@ type UpdateRunInput struct {
 	EndedAt     *time.Time `json:"ended_at"`
 }
 
+type AttemptBossInput struct {
+	Latitude  *float64 `json:"latitude" binding:"required"`
+	Longitude *float64 `json:"longitude" binding:"required"`
+	Proof     string   `json:"proof"`
+}
+
+type AttemptReward struct {
+	ItemID string `json:"itemID"`
+	Qty    int64  `json:"qty"`
+}
+
 // Collection Mongodb collection
 func (r *Run) Collection() string {
 	return "run"

@@ -240,3 +240,82 @@ func (s *Run) GetByIDs(ctx *gin.Context) {
 
 	common.SendResponse(ctx, http.StatusOK, response)
 }
+
+// Attempt Boss step
+func (s *Run) Attempt(ctx *gin.Context) {
+	var in models.AttemptBossInput
+
+	messageTypes := &models.MessageTypes{
+		OK:                  "run.Attempt.Success",
+		BadRequest:          "run.Attempt.BadRequest",
+		NotFound:            "run.Attempt.NotFound",
+		Conflict:            "run.Attempt.Conflict",
+		InternalServerError: "run.Attempt.Error",
+	}
+
+	runID := ctx.Param("id")
+	stepID := ctx.Param("stepId")
+
+	if err := ctx.ShouldBindJSON(&in); err != nil {
+		common.SendResponse(
+			ctx,
+			http.StatusBadRequest,
+			models.KnownError(http.StatusBadRequest, messageTypes.BadRequest, err),
+		)
+		return
+	}
+
+	run, rewards, err := s.RunService.AttemptBoss(runID, stepID, in)
+	if err != nil {
+		switch err.Error() {
+		case "run not found", "step not found":
+			common.SendResponse(
+				ctx,
+				http.StatusNotFound,
+				models.KnownError(http.StatusNotFound, messageTypes.NotFound, err),
+			)
+			return
+		case "run is not active",
+			"step does not belong to run dungeon",
+			"step is not the expected next boss",
+			"player is too far from boss step":
+			common.SendResponse(
+				ctx,
+				http.StatusBadRequest,
+				models.KnownError(http.StatusBadRequest, messageTypes.BadRequest, err),
+			)
+			return
+		case "step already attempted":
+			common.SendResponse(
+				ctx,
+				http.StatusConflict,
+				models.KnownError(http.StatusConflict, messageTypes.Conflict, err),
+			)
+			return
+		default:
+			common.SendResponse(
+				ctx,
+				http.StatusInternalServerError,
+				models.KnownError(http.StatusInternalServerError, messageTypes.InternalServerError, err),
+			)
+			return
+		}
+	}
+
+	meta := models.MetaResponse{
+		ObjectName: "RunAttempt",
+		TotalCount: 1,
+		Count:      1,
+		Offset:     0,
+	}
+
+	response := &models.WSResponse{
+		Meta: meta,
+		Data: gin.H{
+			"run":     run,
+			"rewards": rewards,
+		},
+	}
+
+	common.SendResponse(ctx, http.StatusOK, response)
+}

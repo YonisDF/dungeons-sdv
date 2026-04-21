@@ -31,6 +31,8 @@ func SetupRouter(g *gin.Engine) {
 		{
 			items.GET("", itemController.Get)
 			items.GET("/:id", itemController.GetByID)
+			items.POST("", itemController.Create)
+			items.PUT("/:id", itemController.Update)
 		}
 	}
 }

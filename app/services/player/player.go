@@ -1,4 +1,4 @@
-package Player
+package player
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/rs/zerolog/log"
-	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
@@ -99,26 +99,25 @@ func (p *Player) Create(in *models.Player) (*models.Player, error) {
 
 // GetByID controller to get one Player by ID
 func (p *Player) GetByID(id string) (models.Player, error) {
-	var (
-		err         error
-		player      models.Player
-		queryParams models.QueryParams
-	)
+	var player models.Player
+	var queryParams models.QueryParams
 
 	srv := server.GetServer()
 	collection := srv.Database.Collection(player.Collection())
 
 	queryParams.FilterClause = append(queryParams.FilterClause, "customID,"+id)
 	filter := mongodb.SelectConstructeur(queryParams)
-	err = collection.FindOne(context.TODO(), filter).Decode(&player)
-	if err == nil {
-		if err == mongo.ErrNoDocuments {
-			log.Error().Err(err).Msg("")
-			return player, err
-		}
 
+	err := collection.FindOne(context.TODO(), filter).Decode(&player)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return player, errors.New("player not found")
+		}
+		log.Error().Err(err).Msg("")
+		return player, err
 	}
-	return player, err
+
+	return player, nil
 }
 
 // Update controller to update a Player
@@ -139,11 +138,11 @@ func (p *Player) Update(id string, in *models.UpdatePlayerInput) error {
 	}
 
 	updateFields := bson.M{
-		"updatedat": time.Now(),
+		"updatedAt": time.Now(),
 	}
 
 	if in.DisplayName != nil {
-		updateFields["displayname"] = *in.DisplayName
+		updateFields["displayName"] = *in.DisplayName
 	}
 
 	if in.Gold != nil {
@@ -201,7 +200,7 @@ func (s *Player) Suspend(id string) error {
 	update := bson.M{
 		"$set": bson.M{
 			"suspended": true,
-			"updatedat": time.Now(),
+			"updatedAt": time.Now(),
 		},
 	}
 

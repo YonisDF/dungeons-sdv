@@ -6,6 +6,7 @@ import (
 	itemService "dungeons/app/services/item"
 	"errors"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -129,4 +130,98 @@ func (s *Item) GetByID(ctx *gin.Context) {
 	}
 
 	common.SendResponse(ctx, http.StatusOK, response)
+}
+
+// Create Item
+func (s *Item) Create(ctx *gin.Context) {
+	messageTypes := &models.MessageTypes{
+		Created:             "item.Create.Created",
+		BadRequest:          "item.Create.BadRequest",
+		InternalServerError: "item.Create.Error",
+	}
+
+	var in models.ItemDef
+	if err := ctx.ShouldBindJSON(&in); err != nil {
+		common.SendResponse(
+			ctx,
+			http.StatusBadRequest,
+			models.KnownError(http.StatusBadRequest, messageTypes.BadRequest, err),
+		)
+		return
+	}
+
+	now := time.Now()
+	in.CreatedAt = now
+	in.UpdatedAt = now
+
+	item, err := s.ItemService.Create(&in)
+	if err != nil {
+		common.SendResponse(
+			ctx,
+			http.StatusInternalServerError,
+			models.KnownError(http.StatusInternalServerError, messageTypes.InternalServerError, err),
+		)
+		return
+	}
+
+	meta := models.MetaResponse{
+		ObjectName: "Item",
+		TotalCount: 1,
+		Count:      1,
+		Offset:     0,
+	}
+
+	response := &models.WSResponse{
+		Meta: meta,
+		Data: item,
+	}
+
+	common.SendResponse(ctx, http.StatusCreated, response)
+}
+
+// Update Item
+func (s *Item) Update(ctx *gin.Context) {
+	messageTypes := &models.MessageTypes{
+		OK:                  "item.Update.Ok",
+		BadRequest:          "item.Update.BadRequest",
+		NotFound:            "item.Update.NotFound",
+		InternalServerError: "item.Update.Error",
+	}
+
+	id := ctx.Param("id")
+
+	var in models.ItemDef
+	if err := ctx.ShouldBindJSON(&in); err != nil {
+		common.SendResponse(
+			ctx,
+			http.StatusBadRequest,
+			models.KnownError(http.StatusBadRequest, messageTypes.BadRequest, err),
+		)
+		return
+	}
+
+	err := s.ItemService.Update(id, &in)
+	if err != nil {
+		if err.Error() == "item not found" {
+			common.SendResponse(
+				ctx,
+				http.StatusNotFound,
+				models.KnownError(http.StatusNotFound, messageTypes.NotFound, err),
+			)
+			return
+		}
+
+		common.SendResponse(
+			ctx,
+			http.StatusInternalServerError,
+			models.KnownError(http.StatusInternalServerError, messageTypes.InternalServerError, err),
+		)
+		return
+	}
+
+	common.SendResponse(
+		ctx,
+		http.StatusOK,
+		models.Success(http.StatusOK, messageTypes.OK, "item updated"),
+	)
 }

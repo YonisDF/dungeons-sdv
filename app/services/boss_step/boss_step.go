@@ -10,7 +10,7 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/rs/zerolog/log"
-	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
@@ -97,26 +97,25 @@ func (b *BossStep) Create(in *models.BossStep) (*models.BossStep, error) {
 
 // GetByID controller to get one BossStep by ID
 func (b *BossStep) GetByID(id string) (models.BossStep, error) {
-	var (
-		err         error
-		bossStep    models.BossStep
-		queryParams models.QueryParams
-	)
+	var bossStep models.BossStep
+	var queryParams models.QueryParams
 
 	srv := server.GetServer()
 	collection := srv.Database.Collection(bossStep.Collection())
 
 	queryParams.FilterClause = append(queryParams.FilterClause, "customID,"+id)
 	filter := mongodb.SelectConstructeur(queryParams)
-	err = collection.FindOne(context.TODO(), filter).Decode(&bossStep)
-	if err == nil {
-		if err == mongo.ErrNoDocuments {
-			log.Error().Err(err).Msg("")
-			return bossStep, err
-		}
 
+	err := collection.FindOne(context.TODO(), filter).Decode(&bossStep)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return bossStep, errors.New("not found")
+		}
+		log.Error().Err(err).Msg("")
+		return bossStep, err
 	}
-	return bossStep, err
+
+	return bossStep, nil
 }
 
 // Update controller to update a BossStep

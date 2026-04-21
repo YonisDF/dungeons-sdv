@@ -9,7 +9,7 @@ import (
 	"dungeons/app/server"
 
 	"github.com/rs/zerolog/log"
-	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
@@ -21,7 +21,7 @@ func New() *Inventory {
 
 // Get inventory to get a list of items of a specific player
 func (s *Inventory) GetByPlayerID(playerID string) ([]models.InventoryEntry, error) {
-	var entries = make([]models.InventoryEntry, 0)
+	var entries []models.InventoryEntry
 
 	srv := server.GetServer()
 	collection := srv.Database.Collection((&models.InventoryEntry{}).Collection())

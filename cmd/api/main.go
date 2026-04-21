@@ -14,11 +14,12 @@ func main() {
 	}
 	log.Debug().Msg("API launched with human readable log")
 
-	srv := server.GetServer()
+	if err := LoadDemoData(); err != nil {
+		log.Fatal().Err(err).Msg("Unable to load demo data")
+		os.Exit(52)
+	}
 
-	//createPlayer() -> Bootloader playerService.New(), set data new player
-	//getPlayer()
-	//updatePlayer()
+	srv := server.GetServer()
 
 	srv.ListenAndServe()
 }

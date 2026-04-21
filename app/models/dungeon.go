@@ -18,7 +18,6 @@ type Dungeon struct {
 	Description string        `json:"description"`
 	CreatedBy   string        `json:"createdBy"`
 	Area        string        `json:"area"`
-	Bosses      []BossStep    `json:"bosses"`
 	Status      DungeonStatus `json:"status"`
 	CreatedAt   time.Time     `json:"created_at"`
 	UpdatedAt   time.Time     `json:"updated_at"`
@@ -31,7 +30,6 @@ type DungeonResponse struct {
 	Description string        `json:"description"`
 	CreatedBy   string        `json:"createdBy"`
 	Area        string        `json:"area"`
-	Bosses      []BossStep    `json:"bosses"`
 	Status      DungeonStatus `json:"status"`
 	CreatedAt   time.Time     `json:"created_at"`
 	UpdatedAt   time.Time     `json:"updated_at"`
@@ -43,7 +41,6 @@ type UpdateDungeonInput struct {
 	Description *string        `json:"description"`
 	CreatedBy   *string        `json:"createdBy"`
 	Area        *string        `json:"area"`
-	Bosses      *[]BossStep    `json:"bosses"`
 	Status      *DungeonStatus `json:"status"`
 	Suspended   bool           `json:"suspended"`
 }

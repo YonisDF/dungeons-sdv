@@ -1,4 +1,4 @@
-package Dungeon
+package dungeon
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/rs/zerolog/log"
-	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
@@ -99,26 +99,25 @@ func (d *Dungeon) Create(in *models.Dungeon) (*models.Dungeon, error) {
 
 // GetByID controller to get one Dungeon by ID
 func (d *Dungeon) GetByID(id string) (models.Dungeon, error) {
-	var (
-		err         error
-		dungeon     models.Dungeon
-		queryParams models.QueryParams
-	)
+	var dungeon models.Dungeon
+	var queryParams models.QueryParams
 
 	srv := server.GetServer()
 	collection := srv.Database.Collection(dungeon.Collection())
 
 	queryParams.FilterClause = append(queryParams.FilterClause, "customID,"+id)
 	filter := mongodb.SelectConstructeur(queryParams)
-	err = collection.FindOne(context.TODO(), filter).Decode(&dungeon)
-	if err == nil {
-		if err == mongo.ErrNoDocuments {
-			log.Error().Err(err).Msg("")
-			return dungeon, err
-		}
 
+	err := collection.FindOne(context.TODO(), filter).Decode(&dungeon)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return dungeon, errors.New("dungeon not found")
+		}
+		log.Error().Err(err).Msg("")
+		return dungeon, err
 	}
-	return dungeon, err
+
+	return dungeon, nil
 }
 
 // Update controller to update a Dungeon
@@ -156,15 +155,11 @@ func (d *Dungeon) Update(id string, in *models.UpdateDungeonInput) error {
 		updateFields["area"] = *in.Area
 	}
 
-	if in.Bosses != nil {
-		updateFields["bosses"] = *in.Bosses
-	}
-
 	if in.Status != nil {
 		updateFields["status"] = *in.Status
 	}
 
-	updateFields["updatedat"] = time.Now()
+	updateFields["updatedAt"] = time.Now()
 
 	if len(updateFields) == 1 {
 		return errors.New("no fields to update")
@@ -216,7 +211,7 @@ func (s *Dungeon) Suspend(id string) error {
 	update := bson.M{
 		"$set": bson.M{
 			"suspended": true,
-			"updatedat": time.Now(),
+			"updatedAt": time.Now(),
 		},
 	}
 	_, err = collection.UpdateOne(context.TODO(), filter, update)

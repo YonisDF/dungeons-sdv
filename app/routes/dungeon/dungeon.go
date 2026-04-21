@@ -17,13 +17,13 @@ func SetupRouter(g *gin.Engine) {
 		{
 			dungeons.GET("", dungeonController.Get)
 			dungeons.GET("/:id", dungeonController.GetByID)
-			dungeons.GET("/IDS/:ids", dungeonController.GetByIDs)
+			dungeons.GET("/ids/:ids", dungeonController.GetByIDs)
 		}
 
 		mjDungeons := v1.Group("/mj/dungeons")
 		{
 			mjDungeons.POST("", dungeonController.Create)
-			mjDungeons.PUT("/:id", dungeonController.Update)
+			mjDungeons.PATCH("/:id", dungeonController.Update)
 			mjDungeons.POST("/:id/publish", dungeonController.Publish)
 			mjDungeons.DELETE("/:id", dungeonController.Suspend)
 		}

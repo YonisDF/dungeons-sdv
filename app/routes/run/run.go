@@ -19,8 +19,9 @@ func SetupRouter(g *gin.Engine) {
 			runs.POST("", runController.Create)
 			runs.GET("", runController.Get)
 			runs.GET("/:id", runController.GetByID)
-			runs.POST("/:id", runController.Update)
-			runs.GET("/IDS/:ids", runController.GetByIDs)
+			runs.PATCH("/:id", runController.Update)
+			runs.GET("/ids/:ids", runController.GetByIDs)
+			runs.POST("/:id/steps/:stepId/attempt", runController.Attempt)
 		}
 	}
 }
